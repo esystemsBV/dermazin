@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(CONFIRMATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Product {
+  id          Int              @id @default(autoincrement())
+  name        String
+  price       Decimal
+  category_Id Int
+  description String           @db.Text
+  isHidden    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  category    Category         @relation(fields: [category_Id], references: [id])
+  images      ProductsImages[]
+
+  @@map("products")
+}
+
+model ProductsImages {
+  id         Int     @id @default(autoincrement())
+  product_id Int
+  url        String  @unique
+  product    Product @relation(fields: [product_id], references: [id])
+
+  @@map("products_images")
+}
+
+model Category {
+  id    Int       @id @default(autoincrement())
+  name  String
+  description  String
+  Items Product[]
+  hidden Boolean @default(false)
+  images      CategoriesImages[]
+
+  @@map("categories")
+}
+
+model CategoriesImages {
+  id         Int     @id @default(autoincrement())
+  category_id Int
+  url        String  @unique
+  category    Category  @relation(fields: [category_id], references: [id])
+
+  @@map("categories_images")
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  status     OrderStatus @default(PENDING)
+  name       String
+  isArchived Boolean     @default(false)
+  total      Decimal
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("orders")
+}
+
+enum Role {
+  ADMIN
+  CONFIRMATOR
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
